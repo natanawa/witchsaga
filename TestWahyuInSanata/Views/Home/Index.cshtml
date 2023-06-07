@@ -1,0 +1,133 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+<main>
+    <section class="row" aria-labelledby="aspnetTitle">
+        <h1 id="title">Wahyu Nugroho Indrawinata</h1>
+        <p class="lead">Technical Test di PT. Sanata System, semoga dapat bergabung ...</p>
+    </section>
+    <hr />
+    <div class="row">
+        <section class="col-md-6" aria-labelledby="gettingStartedTitle">
+            <h2 id="librariesTitle">Silahkan isi data dibawah ini....</h2>
+            <hr />
+            <form>
+                <div class="row mb-4">
+                    <div class="col">
+                        <div class="form-outline">
+                            <label class="form-label">Umur Kematian Orang A</label>
+                            <input type="number" min="0" id="umurA" class="form-control" value="10" />
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-outline">
+                            <label class="form-label">Tahun Kematian Orang A</label>
+                            <input type="number" min="0" id="tahunA" class="form-control" value="12" />
+                        </div>
+                    </div>
+                </div>
+                <div class="row mb-4">
+                    <div class="col">
+                        <div class="form-outline">
+                            <label class="form-label">Umur Kematian Orang B</label>
+                            <input type="number" min="0" id="umurB" class="form-control" value="13" />
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-outline">
+                            <label class="form-label">Tahun Kematian Orang B</label>
+                            <input type="number" min="0" id="tahunB" class="form-control" value="17" />
+                        </div>
+                    </div>
+                </div>
+                <hr />
+                <div class="row mb-4">
+                    <div class="col">
+                        <button type="button" id="btnReset" onclick="clearForm()" class="btn btn-dark btn-block mb-4 pull-right">Try Again</button>
+                    </div>
+                    <div class="col">
+                        <button type="button" id="btnProcess" onclick="process()" class="btn btn-primary btn-block mb-4">Process</button>
+                    </div>
+                </div>
+            </form>
+        </section>
+        <section class="col-md-6" aria-labelledby="librariesTitle">
+            <div id="penjelasan" style="display:none">
+                <button type="button" class="btn btn-danger" style="width:100%">
+                    Rata-rata Terbunuh sebanyak <br /><span class="badge badge-light"><h1 id="killResult">0</h1></span>
+                </button>
+                <h2 id="librariesTitle">Penjelasan</h2>
+                <ul class="list-group">
+                    <li class="list-group-item">Orang A yang lahir pada Tahun = <span id="penjelasan1" class="penjelasan"></span></li>
+                    <li class="list-group-item">jumlah orang yang dibunuh pada tahun <span id="penjelasan2" class="penjelasan"></span></li>
+                    <li class="list-group-item">Orang B yang lahir pada Tahun = <span id="penjelasan3" class="penjelasan"></span></li>
+                    <li class="list-group-item">jumlah orang yang dibunuh pada tahun <span id="penjelasan4" class="penjelasan"></span></li>
+                    <li class="list-group-item">Jadi rata-ratanya adalah <span id="penjelasan5" class="penjelasan"></span></li>
+                </ul>
+            </div>
+        </section>
+    </div>
+</main>
+
+
+<script type="text/javascript">
+
+    function clearForm() {
+        $('#umurA').val("");
+        $('#umurB').val("");
+        $('#tahunA').val("");
+        $('#tahunB').val("");
+        $('.penjelasan').val("");
+        $('#killResult').val("0");
+        $("#badgeResult").hide(); 
+        $("#penjelasan").hide(); 
+    }
+    function process() {
+        if ($('#umurA').val() != "" && $('#umurB').val() != "" && $('#tahunA').val() != "" && $('#tahunB').val() != "") {
+            var voData = {
+                UmurA: $('#umurA').val(),
+                UmurB: $('#umurB').val(),
+                TahunA: $('#tahunA').val(),
+                TahunB: $('#tahunB').val(),
+            };
+            $.ajax({
+                url: '@Url.Action("ProcessData", "Home")',
+                type: 'POST',
+                data: JSON.stringify(voData),
+                dataType: 'json',
+                contentType: 'application/json; charset=utf-8',
+                beforeSend: function (msg) {
+                    document.getElementById("btnProcess").disabled = true;
+                },
+                success: function (result) {
+                    document.getElementById("btnProcess").disabled = false;
+                    if (result.errorcode == 0) {
+                        $("#badgeResult").show();
+                        $('#killResult').text(result.data);
+                        var resultPenjelasan1 = parseFloat($('#tahunA').val() - $('#umurA').val());
+                        $("#penjelasan1").text($('#tahunA').val() + " - " + $('#umurA').val() + " = " + resultPenjelasan1);
+                        $("#penjelasan2").text("ke - " + resultPenjelasan1 + " adalah " + result.killedA + "Orang");
+
+                        var resultPenjelasan2 = parseFloat($('#tahunB').val() - $('#umurB').val());
+                        $("#penjelasan3").text($('#tahunB').val() + " - " + $('#umurB').val() + " = " + resultPenjelasan2);
+                        $("#penjelasan4").text("ke - " + resultPenjelasan2 + " adalah " + result.killedB + "Orang");
+
+                        $("#penjelasan5").text("( " + result.killedA + "+ " + result.killedB + ")/2 = " + result.data);
+                        $("#penjelasan").show();
+                    } else {
+                        clearForm();
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    document.getElementById("btnProcess").disabled = false;
+                    clearForm();
+                },
+                async: true,
+                processData: false
+            });
+        } else {
+            window.alert("Silahkan lengkapi form pengisian terlebih dahulu...");
+        }
+    }
+</script>
